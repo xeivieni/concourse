@@ -57,7 +57,7 @@ func (art TaskArtifact) ID() string {
 
 type Worker interface {
 	Name() string
-	FindOrCreateContainer(context.Context, db.ContainerOwner, db.ContainerMetadata, ContainerSpec) (Container, error)
+	FindOrCreateContainer(context.Context, db.ContainerOwner, db.ContainerMetadata, ContainerSpec) (Container, []VolumeMount, error)
 	LookupVolume(logger lager.Logger, handle string) (Volume, bool, error)
 }
 
@@ -67,8 +67,6 @@ type Container interface {
 
 	Properties() (map[string]string, error)
 	SetProperty(name string, value string) error
-
-	VolumeMounts() []VolumeMount
 }
 
 type ContainerSpec struct {
