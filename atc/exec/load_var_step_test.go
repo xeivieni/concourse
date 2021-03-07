@@ -14,8 +14,8 @@ import (
 	"github.com/concourse/concourse/atc"
 	"github.com/concourse/concourse/atc/exec"
 	"github.com/concourse/concourse/atc/exec/build"
-	"github.com/concourse/concourse/atc/exec/build/buildfakes"
 	"github.com/concourse/concourse/atc/exec/execfakes"
+	"github.com/concourse/concourse/atc/runtime/runtimetest"
 	"github.com/concourse/concourse/atc/worker/workerfakes"
 )
 
@@ -49,7 +49,6 @@ var _ = Describe("LoadVarStep", func() {
 		loadVarPlan        *atc.LoadVarPlan
 		artifactRepository *build.Repository
 		state              *execfakes.FakeRunState
-		fakeSource         *buildfakes.FakeRegisterableArtifact
 
 		spStep  exec.Step
 		stepOk  bool
@@ -78,8 +77,7 @@ var _ = Describe("LoadVarStep", func() {
 		state = new(execfakes.FakeRunState)
 		state.ArtifactRepositoryReturns(artifactRepository)
 
-		fakeSource = new(buildfakes.FakeRegisterableArtifact)
-		artifactRepository.RegisterArtifact("some-resource", fakeSource)
+		artifactRepository.RegisterArtifact("some-resource", runtimetest.NewVolume("some-handle"))
 
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
