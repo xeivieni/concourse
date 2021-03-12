@@ -19,7 +19,8 @@ import (
 	"github.com/concourse/concourse/atc/exec"
 	"github.com/concourse/concourse/atc/metric"
 	"github.com/concourse/concourse/atc/policy"
-	"github.com/concourse/concourse/atc/worker"
+	"github.com/concourse/concourse/atc/runtime"
+	worker "github.com/concourse/concourse/atc/worker2"
 	"github.com/hashicorp/go-multierror"
 )
 
@@ -29,12 +30,11 @@ func NewTaskDelegate(
 	state exec.RunState,
 	clock clock.Clock,
 	policyChecker policy.Checker,
-	artifactSourcer worker.ArtifactSourcer,
 	dbWorkerFactory db.WorkerFactory,
 	lockFactory lock.LockFactory,
 ) exec.TaskDelegate {
 	return &taskDelegate{
-		BuildStepDelegate: NewBuildStepDelegate(build, planID, state, clock, policyChecker, artifactSourcer),
+		BuildStepDelegate: NewBuildStepDelegate(build, planID, state, clock, policyChecker),
 
 		eventOrigin: event.Origin{ID: event.OriginID(planID)},
 		build:       build,
@@ -63,13 +63,13 @@ func (d *taskDelegate) SetTaskConfig(config atc.TaskConfig) {
 
 func (d *taskDelegate) SelectWorker(
 	ctx context.Context,
-	pool worker.Pool,
+	pool exec.Pool,
 	owner db.ContainerOwner,
-	containerSpec worker.ContainerSpec,
-	workerSpec worker.WorkerSpec,
-	strategy worker.ContainerPlacementStrategy,
+	containerSpec runtime.ContainerSpec,
+	workerSpec worker.Spec,
+	strategy worker.PlacementStrategy,
 	workerPollingInterval, workerStatusPublishInterval time.Duration,
-) (worker.Client, error) {
+) (runtime.Worker, error) {
 	logger := lagerctx.FromContext(ctx)
 
 	started := time.Now()
@@ -84,7 +84,7 @@ func (d *taskDelegate) SelectWorker(
 		Platform:   workerSpec.Platform,
 	}
 
-	trySelectWorker := func() (worker.Client, error) {
+	trySelectWorker := func() (runtime.Worker, error) {
 		var (
 			activeTasksLock lock.Lock
 			lockAcquired    bool
@@ -106,8 +106,8 @@ func (d *taskDelegate) SelectWorker(
 			}
 		}
 
-		chosenWorker, err := pool.SelectWorker(
-			ctx,
+		chosenWorker, err := pool.FindOrSelectWorker(
+			logger,
 			owner,
 			containerSpec,
 			workerSpec,
@@ -192,18 +192,17 @@ func (d *taskDelegate) SelectWorker(
 func (d taskDelegate) increaseActiveTasks(
 	logger lager.Logger,
 	activeTasksLock lock.Lock,
-	pool worker.Pool,
-	chosenWorker worker.Client,
+	pool exec.Pool,
+	chosenWorker runtime.Worker,
 	owner db.ContainerOwner,
-	workerSpec worker.WorkerSpec,
+	workerSpec worker.Spec,
 ) error {
-	var existingContainer bool
-	existingContainer, err := pool.ContainerInWorker(logger, owner, workerSpec)
+	worker, found, err := pool.FindWorkerForContainer(logger, owner, workerSpec)
 	if err != nil {
 		return err
 	}
 
-	if existingContainer {
+	if found && worker.Name() == chosenWorker.Name() {
 		return nil
 	}
 
@@ -215,7 +214,7 @@ func (d taskDelegate) increaseActiveTasks(
 	return dbWorker.IncreaseActiveTasks()
 }
 
-func (d taskDelegate) decreaseActiveTasks(chosenWorker worker.Client) error {
+func (d taskDelegate) decreaseActiveTasks(chosenWorker runtime.Worker) error {
 	dbWorker, err := d.findDBWorker(chosenWorker.Name())
 	if err != nil {
 		return err
@@ -289,8 +288,8 @@ func (d *taskDelegate) Starting(logger lager.Logger) {
 func (d *taskDelegate) Finished(
 	logger lager.Logger,
 	exitStatus exec.ExitStatus,
-	strategy worker.ContainerPlacementStrategy,
-	chosenWorker worker.Client,
+	strategy worker.PlacementStrategy,
+	chosenWorker runtime.Worker,
 ) {
 	// PR#4398: close to flush stdout and stderr
 	d.Stdout().(io.Closer).Close()

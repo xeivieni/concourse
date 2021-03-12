@@ -13,13 +13,6 @@ import (
 	"github.com/concourse/concourse/atc/db"
 )
 
-//go:generate counterfeiter . StartingEventDelegate
-type StartingEventDelegate interface {
-	Starting(lager.Logger)
-}
-
-/////////////////
-
 type Worker interface {
 	Name() string
 	FindOrCreateContainer(context.Context, db.ContainerOwner, db.ContainerMetadata, ContainerSpec) (Container, []VolumeMount, error)

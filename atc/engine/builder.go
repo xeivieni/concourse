@@ -11,7 +11,6 @@ import (
 	"github.com/concourse/concourse/atc/db/lock"
 	"github.com/concourse/concourse/atc/exec"
 	"github.com/concourse/concourse/atc/policy"
-	"github.com/concourse/concourse/atc/worker"
 )
 
 const supportedSchema = "exec.v2"
@@ -40,7 +39,6 @@ func NewStepperFactory(
 	externalURL string,
 	rateLimiter RateLimiter,
 	policyChecker policy.Checker,
-	artifactSourcer worker.ArtifactSourcer,
 	dbWorkerFactory db.WorkerFactory,
 	lockFactory lock.LockFactory,
 ) StepperFactory {
@@ -49,7 +47,6 @@ func NewStepperFactory(
 		externalURL:     externalURL,
 		rateLimiter:     rateLimiter,
 		policyChecker:   policyChecker,
-		artifactSourcer: artifactSourcer,
 		dbWorkerFactory: dbWorkerFactory,
 		lockFactory:     lockFactory,
 	}
@@ -60,7 +57,6 @@ type stepperFactory struct {
 	externalURL     string
 	rateLimiter     RateLimiter
 	policyChecker   policy.Checker
-	artifactSourcer worker.ArtifactSourcer
 	dbWorkerFactory db.WorkerFactory
 	lockFactory     lock.LockFactory
 }
@@ -81,7 +77,6 @@ func (factory *stepperFactory) buildDelegateFactory(build db.Build, plan atc.Pla
 		plan:            plan,
 		rateLimiter:     factory.rateLimiter,
 		policyChecker:   factory.policyChecker,
-		artifactSourcer: factory.artifactSourcer,
 		dbWorkerFactory: factory.dbWorkerFactory,
 		lockFactory:     factory.lockFactory,
 	}
