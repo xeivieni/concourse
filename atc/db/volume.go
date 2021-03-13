@@ -63,6 +63,8 @@ type CreatingVolume interface {
 	ID() int
 	Created() (CreatedVolume, error)
 	Failed() (FailedVolume, error)
+
+	InitializeArtifact() (WorkerArtifact, error)
 }
 
 type creatingVolume struct {
@@ -137,6 +139,10 @@ func (volume *creatingVolume) Failed() (FailedVolume, error) {
 		handle:     volume.handle,
 		conn:       volume.conn,
 	}, nil
+}
+
+func (volume *creatingVolume) InitializeArtifact() (WorkerArtifact, error) {
+	return initializeArtifact(volume.conn, volume.id, "", 0)
 }
 
 //go:generate counterfeiter . CreatedVolume
@@ -409,7 +415,11 @@ func (volume *createdVolume) GetResourceCacheID() int {
 }
 
 func (volume *createdVolume) InitializeArtifact(name string, buildID int) (WorkerArtifact, error) {
-	tx, err := volume.conn.Begin()
+	return initializeArtifact(volume.conn, volume.id, name, buildID)
+}
+
+func initializeArtifact(conn Conn, volumeID int, name string, buildID int) (WorkerArtifact, error) {
+	tx, err := conn.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -421,14 +431,14 @@ func (volume *createdVolume) InitializeArtifact(name string, buildID int) (Worke
 		BuildID: buildID,
 	}
 
-	workerArtifact, err := saveWorkerArtifact(tx, volume.conn, atcWorkerArtifact)
+	workerArtifact, err := saveWorkerArtifact(tx, conn, atcWorkerArtifact)
 	if err != nil {
 		return nil, err
 	}
 
 	rows, err := psql.Update("volumes").
 		Set("worker_artifact_id", workerArtifact.ID()).
-		Where(sq.Eq{"id": volume.id}).
+		Where(sq.Eq{"id": volumeID}).
 		RunWith(tx).
 		Exec()
 	if err != nil {
