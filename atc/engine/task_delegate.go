@@ -20,7 +20,7 @@ import (
 	"github.com/concourse/concourse/atc/metric"
 	"github.com/concourse/concourse/atc/policy"
 	"github.com/concourse/concourse/atc/runtime"
-	worker "github.com/concourse/concourse/atc/worker2"
+	"github.com/concourse/concourse/atc/worker"
 	"github.com/hashicorp/go-multierror"
 )
 
