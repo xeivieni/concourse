@@ -192,11 +192,11 @@ func (step *PutStep) run(ctx context.Context, state RunState, delegate PutDelega
 
 	owner := db.NewBuildStepContainerOwner(step.metadata.BuildID, step.planID, step.metadata.TeamID)
 
-	processCtx, cancel, err := MaybeTimeout(ctx, step.plan.Timeout)
+	ctx, cancel, err := MaybeTimeout(ctx, step.plan.Timeout)
 	if err != nil {
 		return false, err
 	}
-	processCtx = lagerctx.NewContext(processCtx, logger)
+	ctx = lagerctx.NewContext(ctx, logger)
 
 	defer cancel()
 
@@ -206,7 +206,7 @@ func (step *PutStep) run(ctx context.Context, state RunState, delegate PutDelega
 	}
 	delegate.SelectedWorker(logger, worker.Name())
 
-	container, _, err := worker.FindOrCreateContainer(processCtx, owner, step.containerMetadata, containerSpec)
+	container, _, err := worker.FindOrCreateContainer(ctx, owner, step.containerMetadata, containerSpec)
 	if err != nil {
 		return false, err
 	}
@@ -215,7 +215,7 @@ func (step *PutStep) run(ctx context.Context, state RunState, delegate PutDelega
 	versionResult, processResult, err := resource.Resource{
 		Source: source,
 		Params: params,
-	}.Put(processCtx, container, delegate.Stderr())
+	}.Put(ctx, container, delegate.Stderr())
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			delegate.Errored(logger, TimeoutLogMessage)

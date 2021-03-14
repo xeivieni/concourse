@@ -101,13 +101,9 @@ func (step *CheckStep) run(ctx context.Context, state RunState, delegate CheckDe
 
 	delegate.Initializing(logger)
 
-	timeout := step.defaultCheckTimeout
+	timeout := step.defaultCheckTimeout.String()
 	if step.plan.Timeout != "" {
-		var err error
-		timeout, err = time.ParseDuration(step.plan.Timeout)
-		if err != nil {
-			return false, fmt.Errorf("parse timeout: %w", err)
-		}
+		timeout = step.plan.Timeout
 	}
 
 	source, err := creds.NewSource(state, step.plan.Source).Evaluate()
@@ -232,7 +228,7 @@ func (step *CheckStep) runCheck(
 	ctx context.Context,
 	logger lager.Logger,
 	delegate CheckDelegate,
-	timeout time.Duration,
+	timeout string,
 	resourceConfig db.ResourceConfig,
 	source atc.Source,
 	resourceTypes atc.VersionedResourceTypes,
@@ -284,11 +280,11 @@ func (step *CheckStep) runCheck(
 	}
 	tracing.Inject(ctx, &containerSpec)
 
-	processCtx, cancel, err := MaybeTimeout(ctx, step.plan.Timeout)
+	ctx, cancel, err := MaybeTimeout(ctx, timeout)
 	if err != nil {
 		return nil, runtime.ProcessResult{}, err
 	}
-	processCtx = lagerctx.NewContext(processCtx, logger)
+	ctx = lagerctx.NewContext(ctx, logger)
 
 	defer cancel()
 
@@ -299,7 +295,7 @@ func (step *CheckStep) runCheck(
 	}
 	delegate.SelectedWorker(logger, worker.Name())
 
-	container, _, err := worker.FindOrCreateContainer(processCtx, containerOwner, step.containerMetadata, containerSpec)
+	container, _, err := worker.FindOrCreateContainer(ctx, containerOwner, step.containerMetadata, containerSpec)
 	if err != nil {
 		return nil, runtime.ProcessResult{}, err
 	}
