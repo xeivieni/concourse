@@ -1,10 +1,7 @@
 package runtime
 
 import (
-	"bytes"
 	"context"
-	"encoding/gob"
-	"hash/adler32"
 	"io"
 	"strings"
 
@@ -27,9 +24,8 @@ type Container interface {
 	// ProcessSpec) does not exist, an ExecutableNotFound error must be
 	// returned.
 	Run(context.Context, ProcessSpec, ProcessIO) (Process, error)
-	// Attach attempts to attach to an existing process that was defined by the
-	// ProcessSpec.
-	Attach(context.Context, ProcessSpec, ProcessIO) (Process, error)
+	// Attach attempts to attach to an existing process by its ID.
+	Attach(context.Context, string, ProcessIO) (Process, error)
 
 	Properties() (map[string]string, error)
 	SetProperty(name string, value string) error
@@ -97,21 +93,17 @@ func (cs *ContainerSpec) Set(key string, value string) {
 }
 
 type ProcessSpec struct {
+	// ID is optional - if set, the process can be Attach'd to using this ID.
+	// If unset, an ID will be generated, and can be retrieved using
+	// Process.ID().
+	ID string
+
 	Path string
 	Args []string
 	Env  []string
 	Dir  string
 	User string
 	TTY  *TTYSpec
-}
-
-func (p ProcessSpec) ID() int {
-	buf := new(bytes.Buffer)
-
-	enc := gob.NewEncoder(buf)
-	enc.Encode(p)
-
-	return int(adler32.Checksum(buf.Bytes()))
 }
 
 type TTYSpec struct {
@@ -130,6 +122,7 @@ type ProcessIO struct {
 }
 
 type Process interface {
+	ID() string
 	Wait(context.Context) (ProcessResult, error)
 	SetTTY(tty TTYSpec) error
 }
