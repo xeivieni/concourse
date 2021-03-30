@@ -6,7 +6,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/concourse/concourse/atc"
-	"go.opentelemetry.io/otel/api/propagation"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 //go:generate counterfeiter . ResourceConfigVersion

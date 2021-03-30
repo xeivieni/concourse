@@ -14,7 +14,7 @@ import (
 	"github.com/concourse/concourse/atc/event"
 	"github.com/concourse/concourse/tracing"
 	"github.com/concourse/concourse/vars"
-	"go.opentelemetry.io/otel/api/propagation"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 type FakeBuild struct {

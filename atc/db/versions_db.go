@@ -13,8 +13,8 @@ import (
 	"github.com/concourse/concourse/atc"
 	"github.com/concourse/concourse/tracing"
 	gocache "github.com/patrickmn/go-cache"
-	"go.opentelemetry.io/otel/api/trace"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type VersionsDB struct {
@@ -583,7 +583,7 @@ func (versions VersionsDB) migrateSingle(ctx context.Context, buildID int) (stri
 	ctx, span := tracing.StartSpan(ctx, "VersionsDB.migrateSingle", tracing.Attrs{})
 	defer span.End()
 
-	span.SetAttributes(label.Int("buildID", buildID))
+	span.SetAttributes(attribute.Int("buildID", buildID))
 
 	var outputs string
 	err := versions.conn.QueryRowContext(ctx, `

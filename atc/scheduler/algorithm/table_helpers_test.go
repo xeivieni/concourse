@@ -20,7 +20,7 @@ import (
 	"github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	gocache "github.com/patrickmn/go-cache"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type DB struct {
@@ -220,14 +220,14 @@ func (example Example) importVersionsDB(ctx context.Context, setup setupDB, cach
 	span.AddEvent(
 		ctx,
 		"decoded",
-		label.Int("Jobs", len(debugDB.Jobs)),
-		label.Int("Resources", len(debugDB.Resources)),
-		label.Int("LegacyJobIDs", len(debugDB.LegacyJobIDs)),
-		label.Int("LegacyResourceIDs", len(debugDB.LegacyResourceIDs)),
-		label.Int("ResourceVersions", len(debugDB.ResourceVersions)),
-		label.Int("BuildInputs", len(debugDB.BuildInputs)),
-		label.Int("BuildOutputs", len(debugDB.BuildOutputs)),
-		label.Int("BuildReruns", len(debugDB.BuildReruns)),
+		attribute.Int("Jobs", len(debugDB.Jobs)),
+		attribute.Int("Resources", len(debugDB.Resources)),
+		attribute.Int("LegacyJobIDs", len(debugDB.LegacyJobIDs)),
+		attribute.Int("LegacyResourceIDs", len(debugDB.LegacyResourceIDs)),
+		attribute.Int("ResourceVersions", len(debugDB.ResourceVersions)),
+		attribute.Int("BuildInputs", len(debugDB.BuildInputs)),
+		attribute.Int("BuildOutputs", len(debugDB.BuildOutputs)),
+		attribute.Int("BuildReruns", len(debugDB.BuildReruns)),
 	)
 
 	// legacy, pre-6.0
@@ -571,7 +571,7 @@ func (example Example) assert(
 	ctx, span := tracing.StartSpan(ctx, "assert", tracing.Attrs{})
 	defer span.End()
 
-	span.SetAttributes(label.Int64("seed", ginkgo.GinkgoRandomSeed()))
+	span.SetAttributes(attribute.Int64("seed", ginkgo.GinkgoRandomSeed()))
 
 	resolved, ok, hasNext, resolvedErr := alg.Compute(ctx, job, inputConfigs)
 	if example.Error != nil {

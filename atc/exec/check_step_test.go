@@ -21,8 +21,8 @@ import (
 	"github.com/concourse/concourse/atc/worker/workerfakes"
 	"github.com/concourse/concourse/tracing"
 	"github.com/concourse/concourse/vars"
-	"go.opentelemetry.io/otel/api/trace"
-	"go.opentelemetry.io/otel/api/trace/tracetest"
+	"go.opentelemetry.io/otel/oteltest"
+	"go.opentelemetry.io/otel/trace"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -408,7 +408,7 @@ var _ = Describe("CheckStep", func() {
 						var buildSpan trace.Span
 
 						BeforeEach(func() {
-							tracing.ConfigureTraceProvider(tracetest.NewProvider())
+							tracing.ConfigureTraceProvider(oteltest.NewProvider())
 
 							spanCtx, buildSpan = tracing.StartSpan(ctx, "build", nil)
 							fakeDelegate.StartSpanReturns(spanCtx, buildSpan)

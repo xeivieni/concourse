@@ -3,15 +3,15 @@ package tracing
 import (
 	"context"
 
-	"go.opentelemetry.io/collector/translator/conventions"
-	"go.opentelemetry.io/otel/api/global"
-	"go.opentelemetry.io/otel/api/propagation"
-	"go.opentelemetry.io/otel/api/trace"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/propagation"
 	export "go.opentelemetry.io/otel/sdk/export/trace"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/semconv"
+	"go.opentelemetry.io/otel/trace"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 go.opentelemetry.io/otel/api/trace.Tracer
@@ -36,20 +36,20 @@ type Config struct {
 }
 
 func (c Config) resource() *resource.Resource {
-	attributes := []label.KeyValue{
-		label.String(conventions.AttributeTelemetrySDKName, "opentelemetry"),
-		label.String(conventions.AttributeTelemetrySDKLanguage, "go"),
-		label.String(conventions.AttributeServiceName, c.ServiceName),
+	attributes := []attribute.KeyValue{
+		attribute.String(semconv.TelemetrySDKNameKey, "opentelemetry"),
+		attribute.String(semconv.TelemetrySDKLanguageKey, "go"),
+		attribute.String(semconv.ServiceNameKey, c.ServiceName),
 	}
 
 	for key, value := range c.Attributes {
-		attributes = append(attributes, label.String(key, value))
+		attributes = append(attributes, attribute.String(key, value))
 	}
 
 	return resource.New(attributes...)
 }
 
-func (c Config) TraceProvider(exporter func() (export.SpanSyncer, error)) (trace.Provider, error) {
+func (c Config) TraceProvider(exporter func() (export.SpanSyncer, error)) (trace.TracerProvider, error) {
 	exp, err := exporter()
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (c Config) TraceProvider(exporter func() (export.SpanSyncer, error)) (trace
 }
 
 func (c Config) Prepare() error {
-	var provider trace.Provider
+	var provider trace.TracerProvider
 	var err error
 
 	switch {
@@ -190,7 +190,7 @@ func startSpan(
 		return ctx, trace.NoopSpan{}
 	}
 
-	ctx, span := global.TraceProvider().Tracer("concourse").Start(
+	ctx, span := otel.TraceProvider().Tracer("concourse").Start(
 		ctx,
 		component,
 		opts...,
@@ -211,7 +211,7 @@ func End(span trace.Span, err error) {
 	if err != nil {
 		span.SetStatus(codes.Internal, "")
 		span.SetAttributes(
-			label.String("error-message", err.Error()),
+			attribute.String("error-message", err.Error()),
 		)
 	}
 

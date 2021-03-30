@@ -14,7 +14,7 @@ import (
 	"github.com/concourse/concourse/tracing"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"go.opentelemetry.io/otel/api/trace/tracetest"
+	"go.opentelemetry.io/otel/oteltest"
 )
 
 var _ = Describe("Scheduler", func() {
@@ -422,7 +422,7 @@ var _ = Describe("Scheduler", func() {
 				fakeBuildStarter.TryStartPendingBuildsForJobReturns(false, nil)
 				fakeJob.SaveNextInputMappingReturns(nil)
 
-				tracing.ConfigureTraceProvider(tracetest.NewProvider())
+				tracing.ConfigureTraceProvider(oteltest.NewProvider())
 
 				ctx, _ = tracing.StartSpan(context.Background(), "scheduler.Run", nil)
 				inputCtx1, _ = tracing.StartSpan(context.Background(), "checker.Run", nil)

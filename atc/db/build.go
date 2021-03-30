@@ -14,7 +14,7 @@ import (
 	"github.com/concourse/concourse/atc/creds"
 	"github.com/concourse/concourse/vars"
 	"github.com/lib/pq"
-	"go.opentelemetry.io/otel/api/propagation"
+	"go.opentelemetry.io/otel/propagation"
 
 	"github.com/concourse/concourse/atc"
 	"github.com/concourse/concourse/atc/db/encryption"

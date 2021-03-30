@@ -8,7 +8,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"go.opentelemetry.io/otel/api/trace"
+	"go.opentelemetry.io/otel/trace"
 
 	"code.cloudfoundry.org/lager/lagerctx"
 	"code.cloudfoundry.org/lager/lagertest"

@@ -8,7 +8,8 @@ require (
 	code.cloudfoundry.org/localip v0.0.0-20170223024724-b88ad0dea95c
 	code.cloudfoundry.org/urljoiner v0.0.0-20170223060717-5cabba6c0a50
 	github.com/DataDog/datadog-go v3.7.2+incompatible
-	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v0.11.0
+	github.com/DataDog/sketches-go v0.0.1 // indirect
+	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v0.19.0
 	github.com/Masterminds/squirrel v1.5.0
 	github.com/Microsoft/go-winio v0.4.17-0.20210211115548-6eac466e5fa3 // indirect
 	github.com/Microsoft/hcsshim v0.8.7 // indirect
@@ -50,7 +51,7 @@ require (
 	github.com/hashicorp/go-rootcerts v1.0.2
 	github.com/hashicorp/vault/api v1.0.5-0.20191108163347-bdd38fca2cff
 	github.com/hashicorp/vault/sdk v0.1.14-0.20191112033314-390e96e22eb2 // indirect
-	github.com/honeycombio/opentelemetry-exporter-go v0.11.0
+	github.com/honeycombio/opentelemetry-exporter-go v0.16.0
 	github.com/imdario/mergo v0.3.10
 	github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf
 	github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d
@@ -92,12 +93,15 @@ require (
 	github.com/vito/twentythousandtonnesofcrudeoil v0.0.0-20180305154709-3b21ad808fcb
 	go.etcd.io/bbolt v1.3.5 // indirect
 	go.opentelemetry.io/collector v0.23.0
+	go.opentelemetry.io/contrib/instrumentation/net/http v0.11.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/httptrace v0.11.0 // indirect
 	go.opentelemetry.io/otel v0.19.0
 	go.opentelemetry.io/otel/exporters/otlp v0.19.0
-	go.opentelemetry.io/otel/exporters/trace/jaeger v0.11.0
+	go.opentelemetry.io/otel/exporters/trace/jaeger v0.19.0
 	go.opentelemetry.io/otel/sdk v0.19.0
+	go.opentelemetry.io/otel/trace v0.19.0 // indirect
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
-	golang.org/x/oauth2 v0.0.0-20210210192628-66670185b0cd
+	golang.org/x/oauth2 v0.0.0-20210220000619-9bb904979d93
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
 	google.golang.org/grpc v1.36.1

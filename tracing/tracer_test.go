@@ -5,9 +5,9 @@ import (
 
 	"github.com/concourse/concourse/tracing"
 	"github.com/concourse/concourse/tracing/tracingfakes"
-	"go.opentelemetry.io/otel/api/global"
-	"go.opentelemetry.io/otel/api/trace"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -31,7 +31,7 @@ var _ = Describe("Tracer", func() {
 			fakeSpan,
 		)
 
-		global.SetTraceProvider(fakeProvider)
+		otel.SetTraceProvider(fakeProvider)
 		tracing.Configured = true
 	})
 
@@ -66,9 +66,9 @@ var _ = Describe("Tracer", func() {
 				Expect(fakeSpan.SetAttributesCallCount()).To(Equal(1))
 
 				attrs := fakeSpan.SetAttributesArgsForCall(0)
-				Expect(attrs).To(ConsistOf([]label.KeyValue{
-					label.String("foo", "bar"),
-					label.String("zaz", "caz"),
+				Expect(attrs).To(ConsistOf([]attribute.KeyValue{
+					attribute.String("foo", "bar"),
+					attribute.String("zaz", "caz"),
 				}))
 			})
 		})

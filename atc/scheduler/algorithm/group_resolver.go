@@ -7,9 +7,9 @@ import (
 
 	"github.com/concourse/concourse/atc/db"
 	"github.com/concourse/concourse/tracing"
-	"go.opentelemetry.io/otel/api/trace"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type versionCandidate struct {
@@ -74,7 +74,7 @@ func (r *groupResolver) Resolve(ctx context.Context) (map[string]*versionCandida
 
 		if !found {
 			notFoundErr := db.PinnedVersionNotFound{PinnedVersion: cfg.PinnedVersion}
-			span.SetStatus(codes.InvalidArgument, "")
+			span.SetStatus(codes.Error, "pinned version not found")
 			return nil, notFoundErr.String(), nil
 		}
 
@@ -88,8 +88,8 @@ func (r *groupResolver) Resolve(ctx context.Context) (map[string]*versionCandida
 	}
 
 	if !resolved {
-		span.SetAttributes(label.String("failure", string(failure)))
-		span.SetStatus(codes.NotFound, "")
+		span.SetAttributes(attribute.String("failure", string(failure)))
+		span.SetStatus(codes.Error, "")
 		return nil, failure, nil
 	}
 
@@ -98,7 +98,7 @@ func (r *groupResolver) Resolve(ctx context.Context) (map[string]*versionCandida
 		finalCandidates[input.Name] = r.candidates[i]
 	}
 
-	span.SetStatus(codes.OK, "")
+	span.SetStatus(codes.Ok, "")
 	return finalCandidates, "", nil
 }
 
@@ -158,7 +158,7 @@ func (r *groupResolver) trySatisfyPassedConstraintsForInput(ctx context.Context,
 		}
 
 		if skip {
-			span.AddEvent(ctx, "deferring selection to other jobs", label.Int("passedJobID", passedJobID))
+			span.AddEvent(ctx, "deferring selection to other jobs", attribute.Int("passedJobID", passedJobID))
 			continue
 		}
 
@@ -186,7 +186,7 @@ func (r *groupResolver) tryJobBuilds(ctx context.Context, inputIndex int, passed
 	ctx, span := tracing.StartSpan(ctx, "groupResolver.tryJobBuilds", tracing.Attrs{})
 	defer span.End()
 
-	span.SetAttributes(label.Int("passedJobID", passedJobID))
+	span.SetAttributes(attribute.Int("passedJobID", passedJobID))
 
 	for {
 		buildID, ok, err := builds.Next(ctx)
@@ -218,7 +218,7 @@ func (r *groupResolver) tryBuildOutputs(ctx context.Context, resolvingIdx, jobID
 	ctx, span := tracing.StartSpan(ctx, "groupResolver.tryBuildOutputs", tracing.Attrs{})
 	defer span.End()
 
-	span.SetAttributes(label.Int("buildID", buildID))
+	span.SetAttributes(attribute.Int("buildID", buildID))
 
 	outputs, err := r.vdb.SuccessfulBuildOutputs(ctx, buildID)
 	if err != nil {
@@ -275,8 +275,8 @@ outputs:
 			span.AddEvent(
 				ctx,
 				"vouching for candidate",
-				label.Int("resourceID", output.ResourceID),
-				label.String("version", string(output.Version)),
+				attribute.Int("resourceID", output.ResourceID),
+				attribute.String("version", string(output.Version)),
 			)
 
 			r.candidates[c] = r.vouchForCandidate(candidate, output.Version, jobID, buildID, hasNext)
@@ -451,8 +451,8 @@ func (r *groupResolver) outputIsRelatedAndMatches(ctx context.Context, span trac
 		span.AddEvent(
 			ctx,
 			"version disabled",
-			label.Int("resourceID", output.ResourceID),
-			label.String("version", string(output.Version)),
+			attribute.Int("resourceID", output.ResourceID),
+			attribute.String("version", string(output.Version)),
 		)
 		return false, false, nil
 	}
@@ -464,9 +464,9 @@ func (r *groupResolver) outputIsRelatedAndMatches(ctx context.Context, span trac
 		span.AddEvent(
 			ctx,
 			"pin mismatch",
-			label.Int("resourceID", output.ResourceID),
-			label.String("outputHas", string(output.Version)),
-			label.String("pinHas", string(r.pins[candidateIdx])),
+			attribute.Int("resourceID", output.ResourceID),
+			attribute.String("outputHas", string(output.Version)),
+			attribute.String("pinHas", string(r.pins[candidateIdx])),
 		)
 
 		return false, false, nil

@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/concourse/concourse/atc/db"
-	"go.opentelemetry.io/otel/api/propagation"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 type FakeResourceConfigVersion struct {

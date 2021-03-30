@@ -11,8 +11,8 @@ import (
 	"github.com/concourse/concourse/tracing"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"go.opentelemetry.io/otel/api/trace"
-	"go.opentelemetry.io/otel/api/trace/tracetest"
+	"go.opentelemetry.io/otel/oteltest"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var _ = Describe("ResourceType", func() {
@@ -563,7 +563,7 @@ var _ = Describe("ResourceType", func() {
 			var span trace.Span
 
 			BeforeEach(func() {
-				tracing.ConfigureTraceProvider(tracetest.NewProvider())
+				tracing.ConfigureTraceProvider(oteltest.NewProvider())
 
 				ctx, span = tracing.StartSpan(context.Background(), "fake-operation", nil)
 			})
