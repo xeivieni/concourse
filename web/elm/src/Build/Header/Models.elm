@@ -26,6 +26,7 @@ type alias Model r =
         , fetchingHistory : Bool
         , nextPage : Maybe Page
         , hasLoadedYet : Bool
+        , createdBy : Maybe String
     }
 
 

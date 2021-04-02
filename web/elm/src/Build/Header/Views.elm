@@ -49,7 +49,7 @@ type alias Header =
 
 type Widget
     = Button (Maybe ButtonView)
-    | Title String (Maybe Concourse.JobIdentifier)
+    | Title String (Maybe Concourse.JobIdentifier) (Maybe String)
     | Duration BuildDuration
 
 
@@ -126,8 +126,8 @@ viewWidget widget =
         Button button ->
             Maybe.map viewButton button |> Maybe.withDefault (Html.text "")
 
-        Title name jobId ->
-            Html.h1 [] [ viewTitle name jobId ]
+        Title name jobId createdBy ->
+            Html.h1 [] [ viewTitle name jobId createdBy ]
 
         Duration duration ->
             viewDuration duration
@@ -315,8 +315,8 @@ viewButton { type_, backgroundColor, backgroundShade, isClickable } =
         ]
 
 
-viewTitle : String -> Maybe Concourse.JobIdentifier -> Html Message
-viewTitle name jobID =
+viewTitle : String -> Maybe Concourse.JobIdentifier -> Maybe String -> Html Message
+viewTitle name jobID creator =
     case jobID of
         Just jid ->
             Html.a
@@ -329,6 +329,9 @@ viewTitle name jobID =
                 ]
                 [ Html.span [ class "build-name" ] [ Html.text jid.jobName ]
                 , Html.span [ style "letter-spacing" "-1px" ] [ Html.text (" #" ++ name) ]
+                , case creator of
+                    Just c -> Html.div [ style "font-size" "12px" ] [ Html.text ("created by " ++ c ) ]
+                    _ -> Html.div [ style "font-size" "12px" ] [ Html.text ("") ]
                 ]
 
         _ ->

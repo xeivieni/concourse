@@ -59,7 +59,7 @@ header session model =
                     False
     in
     { leftWidgets =
-        [ Views.Title model.name model.job
+        [ Views.Title model.name model.job model.createdBy
         , Views.Duration (duration session model)
         ]
     , rightWidgets =
